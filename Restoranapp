@@ -1,0 +1,420 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+// Kelas abstrak MenuItem yang akan menjadi kelas dasar untuk semua menu item dalam restoran.
+// Kelas ini memiliki atribut nama (String), harga (double), dan kategori (String).
+// Definisikan metode abstrak tampilMenu() yang akan digunakan untuk menampilkan informasi tentang item menu.
+abstract class MenuItem implements Serializable {
+    protected String nama;
+    protected double harga;
+    protected String kategori;
+
+    // Konstruktor untuk MenuItem
+    public MenuItem(String nama, double harga, String kategori) {
+        this.nama = nama;
+        this.harga = harga;
+        this.kategori = kategori;
+    }
+
+    // Metode abstrak untuk menampilkan menu
+    public abstract void tampilMenu();
+
+    // Getter untuk encapsulation
+    public String getNama() {
+        return nama;
+    }
+
+    public double getHarga() {
+        return harga;
+    }
+
+    public String getKategori() {
+        return kategori;
+    }
+}
+
+// Kelas Makanan yang merupakan turunan dari MenuItem.
+// Kelas ini memiliki atribut tambahan jenisMakanan (String).
+class Makanan extends MenuItem {
+    private String jenisMakanan;
+
+    // Konstruktor untuk Makanan
+    public Makanan(String nama, double harga, String jenisMakanan) {
+        super(nama, harga, "Makanan");
+        this.jenisMakanan = jenisMakanan;
+    }
+
+    // Implementasi metode tampilMenu untuk Makanan
+    @Override
+    public void tampilMenu() {
+        System.out.println("Makanan: " + nama + " (" + jenisMakanan + ")");
+        System.out.println("Harga: Rp " + harga);
+    }
+
+    // Getter untuk jenisMakanan
+    public String getJenisMakanan() {
+        return jenisMakanan;
+    }
+}
+
+// Kelas Minuman yang merupakan turunan dari MenuItem.
+// Kelas ini memiliki atribut tambahan jenisMinuman (String).
+class Minuman extends MenuItem {
+    private String jenisMinuman;
+
+    // Konstruktor untuk Minuman
+    public Minuman(String nama, double harga, String jenisMinuman) {
+        super(nama, harga, "Minuman");
+        this.jenisMinuman = jenisMinuman;
+    }
+
+    // Implementasi metode tampilMenu untuk Minuman
+    @Override
+    public void tampilMenu() {
+        System.out.println("Minuman: " + nama + " (" + jenisMinuman + ")");
+        System.out.println("Harga: Rp " + harga);
+    }
+
+    // Getter untuk jenisMinuman
+    public String getJenisMinuman() {
+        return jenisMinuman;
+    }
+}
+
+// Kelas Diskon yang merupakan turunan dari MenuItem.
+// Kelas ini memiliki atribut diskon (double) dan mengimplementasikan metode tampilMenu() untuk menampilkan informasi tentang diskon.
+class Diskon extends MenuItem {
+    private double diskon;
+
+    // Konstruktor untuk Diskon
+    public Diskon(String nama, double harga, double diskon) {
+        super(nama, harga, "Diskon");
+        this.diskon = diskon;
+    }
+
+    // Implementasi metode tampilMenu untuk Diskon
+    @Override
+    public void tampilMenu() {
+        System.out.println("Diskon: " + nama);
+        System.out.println("Harga: Rp " + harga);
+        System.out.println("Diskon: " + diskon + "%");
+    }
+
+    // Getter untuk diskon
+    public double getDiskon() {
+        return diskon;
+    }
+}
+
+// Kelas Menu yang akan digunakan untuk mengelola semua item menu dalam restoran.
+// Kelas ini memiliki atribut berupa ArrayList<MenuItem> untuk menyimpan semua item menu.
+class Menu implements Serializable {
+    private ArrayList<MenuItem> daftarMenu = new ArrayList<>();
+
+    // Metode untuk menambahkan MenuItem ke Menu
+    public void tambahMenu(MenuItem item) {
+        daftarMenu.add(item);
+    }
+
+    // Metode untuk menampilkan seluruh menu
+    public void tampilMenu() {
+        if (daftarMenu.isEmpty()) {
+            System.out.println("Menu kosong.");
+            return;
+        }
+        for (int i = 0; i < daftarMenu.size(); i++) {
+            System.out.print((i + 1) + ". ");
+            daftarMenu.get(i).tampilMenu();
+            System.out.println(); // Tambahkan baris kosong untuk readability
+        }
+    }
+
+    // Metode untuk mendapatkan MenuItem berdasarkan indeks
+    // Menggunakan exception jika indeks tidak valid
+    public MenuItem getItemByIndex(int indeks) throws IndexOutOfBoundsException {
+        if (indeks < 0 || indeks >= daftarMenu.size()) {
+            throw new IndexOutOfBoundsException("Indeks item menu tidak valid: " + indeks);
+        }
+        return daftarMenu.get(indeks);
+    }
+
+    // Getter untuk daftarMenu
+    public ArrayList<MenuItem> getDaftarMenu() {
+        return daftarMenu;
+    }
+}
+
+// Kelas Pesanan yang akan digunakan untuk mencatat pesanan pelanggan.
+// Kelas ini memiliki atribut berupa ArrayList<MenuItem> untuk menyimpan item-item yang dipesan.
+class Pesanan implements Serializable {
+    private ArrayList<MenuItem> pesanan = new ArrayList<>();
+    private double totalDiskon = 0; // Untuk menghitung total diskon yang diterapkan
+
+    // Metode untuk menambahkan MenuItem ke dalam pesanan
+    public void tambahPesanan(MenuItem item) {
+        pesanan.add(item);
+        // Jika item adalah Diskon, tambahkan ke totalDiskon
+        if (item instanceof Diskon) {
+            totalDiskon += ((Diskon) item).getDiskon();
+        }
+    }
+
+    // Metode untuk menampilkan struk pesanan dan total biaya dengan mempertimbangkan diskon
+    public void tampilStruk() {
+        if (pesanan.isEmpty()) {
+            System.out.println("Pesanan kosong.");
+            return;
+        }
+        double total = 0;
+        System.out.println("Struk Pesanan:");
+        for (int i = 0; i < pesanan.size(); i++) {
+            System.out.print((i + 1) + ". ");
+            pesanan.get(i).tampilMenu();
+            // Jika bukan Diskon, tambahkan harga ke total
+            if (!(pesanan.get(i) instanceof Diskon)) {
+                total += pesanan.get(i).getHarga();
+            }
+            System.out.println();
+        }
+        // Terapkan diskon pada total
+        double diskonAmount = total * (totalDiskon / 100);
+        total -= diskonAmount;
+        System.out.println("Total Diskon: " + totalDiskon + "% (Rp " + diskonAmount + ")");
+        System.out.println("Total Biaya setelah Diskon: Rp " + total);
+    }
+
+    // Getter untuk pesanan
+    public ArrayList<MenuItem> getPesanan() {
+        return pesanan;
+    }
+
+    // Getter untuk totalDiskon
+    public double getTotalDiskon() {
+        return totalDiskon;
+    }
+}
+
+// Kelas utama "main" yang berfungsi sebagai pengguna aplikasi restoran
+public class main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Menu menuRestoran = new Menu();
+        Pesanan pesananPelanggan = new Pesanan();
+        int pilihan;
+
+        // Mulai loop utama program
+        do {
+            System.out.println("\n=== Menu Utama Restoran ===");
+            System.out.println("1. Tambah Item Menu");
+            System.out.println("2. Tampilkan Menu");
+            System.out.println("3. Pesan Menu");
+            System.out.println("4. Tampilkan Struk Pesanan");
+            System.out.println("5. Simpan Menu ke File");
+            System.out.println("6. Muat Menu dari File");
+            System.out.println("7. Simpan Pesanan ke File");
+            System.out.println("8. Muat Pesanan dari File");
+            System.out.println("9. Keluar");
+            System.out.print("Pilih menu: ");
+            try {
+                pilihan = scanner.nextInt();
+                scanner.nextLine(); // Konsumsi newline
+            } catch (Exception e) {
+                System.out.println("Input tidak valid. Silakan masukkan angka.");
+                scanner.nextLine(); // Clear invalid input
+                continue;
+            }
+
+            switch (pilihan) {
+                case 1:
+                    tambahItemkeMenu(menuRestoran, scanner);
+                    break;
+                case 2:
+                    menuRestoran.tampilMenu();
+                    break;
+                case 3:
+                    pesanMenu(menuRestoran, pesananPelanggan, scanner);
+                    break;
+                case 4:
+                    pesananPelanggan.tampilStruk();
+                    break;
+                case 5:
+                    simpanMenuKeFile(menuRestoran, "menu.txt");
+                    break;
+                case 6:
+                    menuRestoran = muatMenuDariFile("menu.txt");
+                    break;
+                case 7:
+                    simpanPesananKeFile(pesananPelanggan, "pesanan.txt");
+                    break;
+                case 8:
+                    pesananPelanggan = muatPesananDariFile("pesanan.txt");
+                    break;
+                case 9:
+                    System.out.println("Keluar dari program. Terima kasih!");
+                    break;
+                default:
+                    System.out.println("Pilihan tidak valid. Silakan coba lagi.");
+            }
+        } while (pilihan != 9);
+
+        scanner.close();
+    }
+
+    // Metode untuk menambahkan item ke dalam menu restoran
+    private static void tambahItemkeMenu(Menu menu, Scanner scanner) {
+        System.out.println("\n1. Tambah Makanan");
+        System.out.println("2. Tambah Minuman");
+        System.out.println("3. Tambah Diskon");
+        System.out.print("Pilih jenis item: ");
+        int jenisItem = scanner.nextInt();
+        scanner.nextLine(); // Konsumsi newline
+        System.out.print("Masukkan nama item: ");
+        String namaItem = scanner.nextLine();
+        System.out.print("Masukkan harga item: Rp ");
+        double hargaItem = scanner.nextDouble();
+        scanner.nextLine(); // Konsumsi newline
+        switch (jenisItem) {
+            case 1:
+                System.out.print("Masukkan jenis makanan: ");
+                String jenisMakanan = scanner.nextLine();
+                menu.tambahMenu(new Makanan(namaItem, hargaItem, jenisMakanan));
+                System.out.println("Makanan berhasil ditambahkan.");
+                break;
+            case 2:
+                System.out.print("Masukkan jenis minuman: ");
+                String jenisMinuman = scanner.nextLine();
+                menu.tambahMenu(new Minuman(namaItem, hargaItem, jenisMinuman));
+                System.out.println("Minuman berhasil ditambahkan.");
+                break;
+            case 3:
+                System.out.print("Masukkan persentase diskon: ");
+                double diskon = scanner.nextDouble();
+                menu.tambahMenu(new Diskon(namaItem, hargaItem, diskon));
+                System.out.println("Diskon berhasil ditambahkan.");
+                break;
+            default:
+                System.out.println("Pilihan tidak valid.");
+        }
+    }
+
+    // Metode untuk mengambil pesanan dari menu
+    private static void pesanMenu(Menu menu, Pesanan pesanan, Scanner scanner) {
+        menu.tampilMenu();
+        System.out.print("Masukkan nomor item yang ingin dipesan (0 untuk selesai): ");
+        int nomorItem;
+        do {
+            try {
+                nomorItem = scanner.nextInt();
+                if (nomorItem > 0) {
+                    MenuItem menuItem = menu.getItemByIndex(nomorItem - 1);
+                    pesanan.tambahPesanan(menuItem);
+                    System.out.println("Item '" + menuItem.getNama() + "' berhasil ditambahkan ke pesanan.");
+                } else if (nomorItem < 0) {
+                    System.out.println("Nomor item tidak boleh negatif.");
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println(e.getMessage() + ". Silakan coba lagi.");
+                nomorItem = -1; // Lanjutkan loop
+            } catch (Exception e) {
+                System.out.println("Input tidak valid. Silakan masukkan angka.");
+                scanner.nextLine(); // Clear invalid input
+                nomorItem = -1;
+            }
+        } while (nomorItem != 0);
+    }
+
+    // Metode untuk menyimpan menu ke file teks
+    private static void simpanMenuKeFile(Menu menu, String namaFile) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(namaFile))) {
+            for (MenuItem item : menu.getDaftarMenu()) {
+                writer.println(item.getKategori() + "," + item.getNama() + "," + item.getHarga() +
+                               (item instanceof Makanan ? "," + ((Makanan) item).getJenisMakanan() :
+                                item instanceof Minuman ? "," + ((Minuman) item).getJenisMinuman() :
+                                item instanceof Diskon ? "," + ((Diskon) item).getDiskon() : ""));
+            }
+            System.out.println("Menu berhasil disimpan ke " + namaFile);
+        } catch (IOException e) {
+            System.out.println("Error saat menyimpan menu: " + e.getMessage());
+        }
+    }
+
+    // Metode untuk memuat menu dari file teks
+    private static Menu muatMenuDariFile(String namaFile) {
+        Menu menu = new Menu();
+        try (BufferedReader reader = new BufferedReader(new FileReader(namaFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String kategori = parts[0];
+                String nama = parts[1];
+                double harga = Double.parseDouble(parts[2]);
+                if (kategori.equals("Makanan")) {
+                    String jenis = parts[3];
+                    menu.tambahMenu(new Makanan(nama, harga, jenis));
+                } else if (kategori.equals("Minuman")) {
+                    String jenis = parts[3];
+                    menu.tambahMenu(new Minuman(nama, harga, jenis));
+                } else if (kategori.equals("Diskon")) {
+                    double diskon = Double.parseDouble(parts[3]);
+                    menu.tambahMenu(new Diskon(nama, harga, diskon));
+                }
+            }
+            System.out.println("Menu berhasil dimuat dari " + namaFile);
+        } catch (IOException | NumberFormatException e) {
+            System.out.println("Error saat memuat menu: " + e.getMessage());
+        }
+        return menu;
+    }
+
+    // Metode untuk menyimpan pesanan ke file teks
+    private static void simpanPesananKeFile(Pesanan pesanan, String namaFile) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(namaFile))) {
+            writer.println(pesanan.getTotalDiskon()); // Simpan total diskon dulu
+            for (MenuItem item : pesanan.getPesanan()) {
+                writer.println(item.getKategori() + "," + item.getNama() + "," + item.getHarga() +
+                               (item instanceof Makanan ? "," + ((Makanan) item).getJenisMakanan() :
+                                item instanceof Minuman ? "," + ((Minuman) item).getJenisMinuman() :
+                                item instanceof Diskon ? "," + ((Diskon) item).getDiskon() : ""));
+            }
+            System.out.println("Pesanan berhasil disimpan ke " + namaFile);
+        } catch (IOException e) {
+            System.out.println("Error saat menyimpan pesanan: " + e.getMessage());
+        }
+    }
+
+    // Metode untuk memuat pesanan dari file teks
+    private static Pesanan muatPesananDariFile(String namaFile) {
+        Pesanan pesanan = new Pesanan();
+        try (BufferedReader reader = new BufferedReader(new FileReader(namaFile))) {
+            String line = reader.readLine();
+            if (line != null) {
+                double totalDiskon = Double.parseDouble(line);
+                pesanan = new Pesanan(); // Reset, tapi kita set totalDiskon secara manual
+                // Karena totalDiskon dihitung ulang saat tambahPesanan, kita abaikan untuk sekarang
+            }
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String kategori = parts[0];
+                String nama = parts[1];
+                double harga = Double.parseDouble(parts[2]);
+                if (kategori.equals("Makanan")) {
+                    String jenis = parts[3];
+                    pesanan.tambahPesanan(new Makanan(nama, harga, jenis));
+                } else if (kategori.equals("Minuman")) {
+                    String jenis = parts[3];
+                    pesanan.tambahPesanan(new Minuman(nama, harga, jenis));
+                } else if (kategori.equals("Diskon")) {
+                    double diskon = Double.parseDouble(parts[3]);
+                    pesanan.tambahPesanan(new Diskon(nama, harga, diskon));
+                }
+            }
+            System.out.println("Pesanan berhasil dimuat dari " + namaFile);
+        } catch (IOException | NumberFormatException e) {
+            System.out.println("Error saat memuat pesanan: " + e.getMessage());
+        }
+        return pesanan;
+    }
+}
+
+​
